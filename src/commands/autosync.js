@@ -117,7 +117,7 @@ export async function execute(cmd) {
         try {
             await api(`/guilds/${cmd.guild.id}`);
         } catch {
-            if (!response.ok) return fail("This is not a TCN server.");
+            return fail("This is not a TCN server.");
         }
     }
 
