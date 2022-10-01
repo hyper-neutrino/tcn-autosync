@@ -123,6 +123,7 @@ export async function execute(cmd) {
 
     if (sub == "clear") {
         await db("guilds").findOneAndDelete({ guild: cmd.guild.id });
+        console.log(`[${cmd.guild.id}] ${cmd.guild.name} cleared its data`);
         return success("Cleared your server's stored data!");
     } else if (subgroup == "webhook") {
         if (sub == "set") {
@@ -171,6 +172,8 @@ export async function execute(cmd) {
                 { upsert: true }
             );
 
+            console.log(`[${cmd.guild.id}] ${cmd.guild.name} set its webhook`);
+
             return success(
                 `Your server's TCN partner webhook has been set to the webhook named **${escapeBold(
                     webhook.name
@@ -212,6 +215,10 @@ export async function execute(cmd) {
                 { upsert: true }
             );
 
+            console.log(
+                `[${cmd.guild.id}] ${cmd.guild.name} set its message link`
+            );
+
             return success(
                 `Your server's embed message has been set to [this message](${message.url})!`
             );
@@ -221,6 +228,10 @@ export async function execute(cmd) {
             { guild: cmd.guild.id },
             { $set: { mode: sub } },
             { upsert: true }
+        );
+
+        console.log(
+            `[${cmd.guild.id}] ${cmd.guild.name} switched to ${sub} mode`
         );
 
         return success(
