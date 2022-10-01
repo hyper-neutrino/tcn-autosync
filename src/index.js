@@ -24,6 +24,14 @@ client.once("ready", async () => {
     console.log("TCN Autosync is ready.");
 });
 
+client.on("guildCreate", async (guild) => {
+    console.log(`=> added to ${guild.name} (${guild.id})`);
+});
+
+client.on("guildDelete", async (guild) => {
+    console.log(`<= removed from ${guild.name} (${guild.id})`);
+});
+
 client.on("interactionCreate", async (interaction) => {
     if (interaction.type == InteractionType.ApplicationCommand) {
         await interaction.deferReply({ ephemeral: true });
