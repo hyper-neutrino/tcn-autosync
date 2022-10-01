@@ -388,8 +388,15 @@ export async function execute(cmd) {
                 }
 
                 try {
-                    await webhook.send(json);
+                    const message = await webhook.send(json);
                     console.log("- posted!");
+                    
+                    try {
+                        await db("guilds").findOneAndUpdate(
+                            { guild: guild.guild },
+                            { message: message.id },
+                        );
+                    } catch {}
                 } catch (error) {
                     console.log("!!! ERROR IN POST");
                     console.log(error);
