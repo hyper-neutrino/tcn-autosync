@@ -394,7 +394,7 @@ export async function execute(cmd) {
                     try {
                         await db("guilds").findOneAndUpdate(
                             { guild: guild.guild },
-                            { message: message.id },
+                            { $set: { message: message.id } },
                         );
                     } catch {}
                 } catch (error) {
