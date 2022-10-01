@@ -113,7 +113,7 @@ export async function execute(cmd) {
     const subgroup = cmd.options.getSubcommandGroup();
     const sub = cmd.options.getSubcommand();
 
-    if (sub != "clear" && sub != "push") {
+    if (sub != "clear" && sub != "push" && cmd.guild.id != "878812623725002752") {
         try {
             await api(`/guilds/${cmd.guild.id}`);
         } catch {
