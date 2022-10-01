@@ -326,6 +326,8 @@ export async function execute(cmd) {
             const allowed = new Set(
                 (await api("/guilds")).map((guild) => guild.id)
             );
+            
+            allowed.add("878812623725002752"); // Hub
 
             for (const guild of await db("guilds").find({}).toArray()) {
                 let status;
