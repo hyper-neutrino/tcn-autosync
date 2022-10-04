@@ -346,7 +346,7 @@ export async function execute(cmd) {
 
             for (const guild of await db("guilds").find({}).toArray()) {
                 try {
-                    await push(guild, json, allowed);
+                    await push(cmd.client, guild, json, allowed);
                 } catch {}
             }
 
@@ -360,11 +360,11 @@ export async function execute(cmd) {
         }
     } else if (sub == "update") {
         const guild = await db("guilds").findOne({ guild: cmd.guild.id });
-        return await push(guild ?? { guild: cmd.guild.id });
+        return await push(cmd.client, guild ?? { guild: cmd.guild.id });
     }
 }
 
-async function push(guild, message, guilds) {
+async function push(client, guild, message, guilds) {
     if (!message) {
         message = JSON.parse((await db("message").findOne({ id: "-" })).data);
     }
@@ -389,7 +389,7 @@ async function push(guild, message, guilds) {
     if (blocked) {
         log("not a TCN server");
         return fail("This is not a TCN server. Your command was ignored.");
-    } else if (!cmd.client.guilds.cache.has(guild.guild)) {
+    } else if (!client.guilds.cache.has(guild.guild)) {
         log("bot not in server, skipped");
         return fail("???");
     } else if (!guild.id || !guild.token) {
