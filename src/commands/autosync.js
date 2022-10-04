@@ -369,7 +369,7 @@ async function push(client, guild, message, guilds) {
         message = JSON.parse((await db("message").findOne({ id: "-" })).data);
     }
 
-    const log = (x) => console.log(`[${guild.guild}] ${status}`);
+    const log = (x) => console.log(`[${guild.guild}] ${x}`);
 
     let status;
     let webhook;
