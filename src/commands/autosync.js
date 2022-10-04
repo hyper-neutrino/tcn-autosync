@@ -364,9 +364,9 @@ export async function execute(cmd) {
     }
 }
 
-async function push(client, guild, message, guilds) {
-    if (!message) {
-        message = JSON.parse((await db("message").findOne({ id: "-" })).data);
+async function push(client, guild, json, guilds) {
+    if (!json) {
+        json = JSON.parse((await db("message").findOne({ id: "-" })).data);
     }
 
     const log = (x) => console.log(`[${guild.guild}] ${x}`);
