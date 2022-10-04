@@ -106,6 +106,11 @@ export const command = {
                 },
             ],
         },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: "update",
+            description: "update this server's embed",
+        },
     ],
 };
 
@@ -113,7 +118,11 @@ export async function execute(cmd) {
     const subgroup = cmd.options.getSubcommandGroup();
     const sub = cmd.options.getSubcommand();
 
-    if (sub != "clear" && sub != "push" && cmd.guild.id != "878812623725002752") {
+    if (
+        sub != "clear" &&
+        sub != "push" &&
+        cmd.guild.id != "878812623725002752"
+    ) {
         try {
             await api(`/guilds/${cmd.guild.id}`);
         } catch {
@@ -314,6 +323,12 @@ export async function execute(cmd) {
                 return;
             }
 
+            await db("message").findOneAndUpdate(
+                { id: "-" },
+                { $set: { data: JSON.stringify(json) } },
+                { upsert: true }
+            );
+
             await button.reply({
                 ...template("Updating messages...", "Updating...", 0x2d3136),
                 ephemeral: true,
@@ -326,82 +341,13 @@ export async function execute(cmd) {
             const allowed = new Set(
                 (await api("/guilds")).map((guild) => guild.id)
             );
-            
+
             allowed.add("878812623725002752"); // Hub
 
             for (const guild of await db("guilds").find({}).toArray()) {
-                let status;
-                let webhook;
-
-                if (!allowed.has(guild.guild)) {
-                    status = "not a TCN server, skipped";
-                } else if (!cmd.client.guilds.cache.has(guild.guild)) {
-                    status = "bot not in server, skipped";
-                } else if (!guild.id || !guild.token) {
-                    status = "missing webhook data, skipped";
-                } else {
-                    try {
-                        webhook = await cmd.client.fetchWebhook(
-                            guild.id,
-                            guild.token
-                        );
-
-                        status = "fetched, updating";
-                    } catch {
-                        cmd.client.rest.setToken(config.discord_token);
-                        status = "invalid webhook, skipped and deleted records";
-
-                        try {
-                            await db("guilds").findOneAndUpdate(
-                                { guild: guild.guild },
-                                { $delete: { id: 0, token: 0 } }
-                            );
-                        } catch {}
-                    }
-                }
-
-                console.log(`[${guild.guild}] ${status}`);
-
-                if (!webhook) continue;
-
-                if (guild.message) {
-                    if (guild.mode == "repost") {
-                        try {
-                            await webhook.deleteMessage(guild.message);
-                            console.log("- deleted, preparing to repost");
-                        } catch {
-                            console.log(
-                                "- failed to delete, preparing to post anyway"
-                            );
-                        }
-                    } else {
-                        try {
-                            await webhook.editMessage(guild.message, json);
-                            console.log("- edited");
-                            continue;
-                        } catch {
-                            console.log(
-                                "- failed to edit, preparing to post normally"
-                            );
-                        }
-                    }
-                }
-
                 try {
-                    const message = await webhook.send(json);
-                    console.log("- posted!");
-                    
-                    try {
-                        await db("guilds").findOneAndUpdate(
-                            { guild: guild.guild },
-                            { $set: { message: message.id } },
-                        );
-                    } catch {}
-                } catch (error) {
-                    console.log("!!! ERROR IN POST");
-                    console.log(error);
-                    console.log("-".repeat(20));
-                }
+                    await push(guild, json, allowed);
+                } catch {}
             }
 
             console.log("DONE " + "-".repeat(40));
@@ -412,5 +358,105 @@ export async function execute(cmd) {
                 "An error occurred; please make sure your file is a valid Discord message."
             );
         }
+    } else if (sub == "update") {
+        return await push(cmd.guild);
+    }
+}
+
+async function push(guild, message, guilds) {
+    if (!message) {
+        message = JSON.parse((await db("message").findOne({ id: "-" })).data);
+    }
+
+    const log = (x) => console.log(`[${guild.guild}] ${status}`);
+
+    let status;
+    let webhook;
+
+    let blocked = false;
+
+    if (guilds) {
+        blocked = !guilds.has(guild.guild);
+    } else {
+        try {
+            await api(`/guilds/${guild.guild}`);
+        } catch {
+            blocked = true;
+        }
+    }
+
+    if (blocked) {
+        log("not a TCN server");
+        return fail("This is not a TCN server. Your command was ignored.");
+    } else if (!cmd.client.guilds.cache.has(guild.guild)) {
+        log("bot not in server, skipped");
+        return fail("???");
+    } else if (!guild.id || !guild.token) {
+        log("missing webhook data, skipped");
+        return fail(
+            "Please set up the webhook data first (**/autosync help** for a list of commands)."
+        );
+    } else {
+        try {
+            webhook = await cmd.client.fetchWebhook(guild.id, guild.token);
+
+            log("fetched; updating");
+        } catch {
+            cmd.client.rest.setToken(config.discord_token);
+            log("invalid webhook, skipped and deleted records");
+
+            try {
+                await db("guilds").findOneAndUpdate(
+                    { guild: guild.guild },
+                    { $delete: { id: 0, token: 0 } }
+                );
+            } catch {}
+
+            return fail(
+                "The stored webhook data was invalid and was deleted. Please set it up again (**/autosync help** for a list of commands)."
+            );
+        }
+    }
+
+    if (!webhook) return fail("Webhook missing!");
+
+    if (guild.message) {
+        if (guild.mode == "repost") {
+            try {
+                await webhook.deleteMessage(guild.message);
+                log("deleted, preparing to repost");
+            } catch {
+                log("failed to delete, preparing to post anyway");
+            }
+        } else {
+            try {
+                await webhook.editMessage(guild.message, json);
+                log("edited");
+                return success("The embed message was edited.");
+            } catch {
+                log("failed to edit, preparing to post normally");
+            }
+        }
+    }
+
+    try {
+        const message = await webhook.send(json);
+
+        try {
+            await db("guilds").findOneAndUpdate(
+                { guild: guild.guild },
+                { $set: { message: message.id } }
+            );
+        } catch {}
+
+        log("posted!");
+        return success("A new embed message was posted.");
+    } catch (error) {
+        log("!!! ERROR IN POST");
+        log(error);
+        log("-".repeat(20));
+        return fail(
+            "An unexpected error occured in the post. Please contact HyperNeutrino#1759 if this persists."
+        );
     }
 }
