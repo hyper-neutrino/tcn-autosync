@@ -359,7 +359,8 @@ export async function execute(cmd) {
             );
         }
     } else if (sub == "update") {
-        return await push(cmd.guild);
+        const guild = await db("guilds").findOne({ guild: guild.id });
+        return await push(guild ?? { guild: guild.id });
     }
 }
 
@@ -377,7 +378,7 @@ async function push(guild, message, guilds) {
 
     if (guilds) {
         blocked = !guilds.has(guild.guild);
-    } else {
+    } else if (guild.guild != "878812623725002752") {
         try {
             await api(`/guilds/${guild.guild}`);
         } catch {
