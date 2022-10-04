@@ -399,7 +399,7 @@ async function push(client, guild, message, guilds) {
         );
     } else {
         try {
-            webhook = await cmd.client.fetchWebhook(guild.id, guild.token);
+            webhook = await client.fetchWebhook(guild.id, guild.token);
 
             log("fetched; updating");
         } catch {
