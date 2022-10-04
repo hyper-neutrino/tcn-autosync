@@ -403,7 +403,7 @@ async function push(client, guild, message, guilds) {
 
             log("fetched; updating");
         } catch {
-            cmd.client.rest.setToken(config.discord_token);
+            client.rest.setToken(config.discord_token);
             log("invalid webhook, skipped and deleted records");
 
             try {
