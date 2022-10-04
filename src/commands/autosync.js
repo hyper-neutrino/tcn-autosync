@@ -359,8 +359,8 @@ export async function execute(cmd) {
             );
         }
     } else if (sub == "update") {
-        const guild = await db("guilds").findOne({ guild: guild.id });
-        return await push(guild ?? { guild: guild.id });
+        const guild = await db("guilds").findOne({ guild: cmd.guild.id });
+        return await push(guild ?? { guild: cmd.guild.id });
     }
 }
 
