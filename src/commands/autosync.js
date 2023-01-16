@@ -338,11 +338,11 @@ export async function execute(cmd) {
             console.log(`Initiated by: ${cmd.user.tag} (${cmd.user.id})`);
             console.log(``);
 
-            const allowed = new Set(
-                (await api("/guilds")).map((guild) => guild.id)
+            const allowed = new Map()(await api("/guilds")).forEach((guild) =>
+                allowed.set(guild.id, guild.name)
             );
 
-            allowed.add("878812623725002752"); // Hub
+            allowed.set("878812623725002752", "TCN Hub");
 
             for (const guild of await db("guilds").find({}).toArray()) {
                 try {
@@ -369,7 +369,8 @@ async function push(client, guild, json, guilds) {
         json = JSON.parse((await db("message").findOne({ id: "-" })).data);
     }
 
-    const log = (x) => console.log(`[${guild.guild}] ${x}`);
+    const log = (x) =>
+        console.log(`[${guild.guild}] ${guilds.get(guild.guild)}: ${status}`);
 
     let status;
     let webhook;
