@@ -372,9 +372,8 @@ async function push(client, guild, json, guilds) {
     }
 
     const log = (x) =>
-        console.log(`[${guild.guild}] ${guilds.get(guild.guild)}: ${status}`);
+        console.log(`[${guild.guild}] ${guilds.get(guild.guild)}: ${x}`);
 
-    let status;
     let webhook;
 
     let blocked = false;
