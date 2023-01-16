@@ -338,7 +338,9 @@ export async function execute(cmd) {
             console.log(`Initiated by: ${cmd.user.tag} (${cmd.user.id})`);
             console.log(``);
 
-            const allowed = new Map()(await api("/guilds")).forEach((guild) =>
+            const allowed = new Map();
+
+            (await api("/guilds")).forEach((guild) =>
                 allowed.set(guild.id, guild.name)
             );
 
