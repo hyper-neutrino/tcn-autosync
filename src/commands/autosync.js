@@ -362,7 +362,12 @@ export async function execute(cmd) {
         }
     } else if (sub == "update") {
         const guild = await db("guilds").findOne({ guild: cmd.guild.id });
-        return await push(cmd.client, guild ?? { guild: cmd.guild.id });
+        return await push(
+            cmd.client,
+            guild ?? { guild: cmd.guild.id },
+            undefined,
+            new Map([[cmd.guild.id, cmd.guild.name]])
+        );
     }
 }
 
