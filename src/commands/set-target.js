@@ -13,7 +13,14 @@ export async function execute(cmd) {
     if (!cmd.targetMessage.webhookId)
         return fail("You must select a webhook message.");
 
-    const webhooks = await cmd.channel.fetchWebhooks();
+    let webhooks;
+
+    try {
+        webhooks = await cmd.channel.fetchWebhooks();
+    } catch {
+        return fail("Failed to fetch webhooks. To use this option, you must grant the bot the Manage Webhooks permission, at least in this channel.");
+    }
+
     const webhook = webhooks.find((hook) => hook.id === cmd.targetMessage.webhookId);
 
     if (!webhook)
