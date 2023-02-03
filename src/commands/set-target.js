@@ -5,7 +5,6 @@ import { fail, success } from "../embeds.js";
 export const command = {
     type: ApplicationCommandType.Message,
     name: "Set Target",
-    description: "set the TCN partner message and webhook automatically",
     dm_permission: false,
     default_member_permissions: "0",
 };
