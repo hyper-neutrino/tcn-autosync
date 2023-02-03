@@ -10,11 +10,11 @@ export const command = {
 };
 
 export async function execute(cmd) {
-    if (!cmd.message.webhookId)
+    if (!cmd.targetMessage.webhookId)
         return fail("You must select a webhook message.");
 
     const webhooks = await cmd.channel.fetchWebhooks();
-    const webhook = webhooks.find((hook) => hook.id === cmd.message.webhookId);
+    const webhook = webhooks.find((hook) => hook.id === cmd.targetMessage.webhookId);
 
     if (!webhook)
         return fail(
@@ -27,11 +27,11 @@ export async function execute(cmd) {
             $set: {
                 id: webhook.id,
                 token: webhook.token,
-                message: cmd.message.id,
+                message: cmd.targetMessage.id,
             },
         },
         { upsert: true }
     );
 
-    return success(`Your server's TCN partner webhook has been set to the webhook named **${escapeBold(webhook.name)}** targeting [this message](${cmd.message.url})!`);
+    return success(`Your server's TCN partner webhook has been set to the webhook named **${escapeBold(webhook.name)}** targeting [this message](${cmd.targetMessage.url})!`);
 }
